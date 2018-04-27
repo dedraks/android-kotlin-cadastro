@@ -8,18 +8,34 @@ import android.view.ViewGroup
 import android.view.View
 import kotlinx.android.synthetic.main.aluno_item.view.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
-import kotlin.coroutines.experimental.CoroutineContext
+import android.widget.Filter
+import android.widget.Filterable
 
-class MyAdapter(private val alunos: List<Aluno>, private val context: Context): RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
+class MyAdapter(private var alunosList: MutableList<Aluno>, private val context: Context): RecyclerView.Adapter<MyAdapter.MyViewHolder>(), Filterable {
+
+    var mFilter: MyFilter? = null
+    var mFilterList = mutableListOf<Aluno>()
+
+    override fun getFilter(): Filter {
+        if (mFilter == null) mFilter = MyFilter(this, alunosList)
+
+        return mFilter!!
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.aluno_item, parent, false)
         return MyViewHolder(view)
     }
 
-    override fun getItemCount() = alunos.size
+    override fun getItemCount() = alunosList.size
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.binView(alunos[position])
+        holder.binView(alunosList[position])
+    }
+
+    fun updateList(list: MutableList<Aluno>) {
+        this.alunosList = list
+        this.mFilterList = list.toMutableList()
     }
 
     class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -27,7 +43,6 @@ class MyAdapter(private val alunos: List<Aluno>, private val context: Context): 
         val endereco = itemView.textViewEndereco
         val telefone = itemView.textViewTelefone
         val email = itemView.textViewEmail
-
 
         fun binView(aluno: Aluno) {
             nome.text = aluno.nome
@@ -42,12 +57,42 @@ class MyAdapter(private val alunos: List<Aluno>, private val context: Context): 
                 itemView.setBackgroundColor(Color.parseColor("#FFDDEEFF"))
             }
 
-
             itemView.onClick {
-
                 MainActivity.self.createCreateAlunoDialog(aluno)
             }
         }
+    }
+
+    class MyFilter(val adapter: MyAdapter, val filterList: MutableList<Aluno>) : Filter() {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            var results = FilterResults()
+
+            constraint?.let {
+                if (it.length > 0) {
+                    val filtered = mutableListOf<Aluno>()
+                    for (item in filterList) {
+                        if (item.nome.contains(constraint, true)) {
+                            filtered.add(item)
+                        }
+                    }
+                    results.values = filtered
+                    results.count = filtered.size
+                }
+                else {
+                    results.values = filterList
+                    results.count = filterList.size
+                }
+            }
+
+
+            return results
+        }
+
+        override fun publishResults(p0: CharSequence?, results: FilterResults?) {
+            adapter.updateList(results?.values as MutableList<Aluno>)
+            adapter.notifyDataSetChanged()
+        }
+
     }
 }
 

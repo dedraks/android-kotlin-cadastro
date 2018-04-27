@@ -1,5 +1,7 @@
 package com.example.a345308.cadastro
 
+import android.app.SearchManager
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
@@ -8,6 +10,7 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SearchView
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.KeyEvent
 import android.view.Menu
@@ -22,9 +25,19 @@ import kotlinx.android.synthetic.main.aluno_item.view.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.jetbrains.anko.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     val list : MutableList<Aluno> = mutableListOf()
+    lateinit var adapter : MyAdapter
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        adapter.filter.filter(newText)
+        return true
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return true
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,16 +51,28 @@ class MainActivity : AppCompatActivity() {
 
         self = this
 
-
-        recyclerView.adapter = MyAdapter(list, this)
+        adapter = MyAdapter(list, this)
+        recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-
         initSwipe()
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
+
+
+        menuInflater.inflate(R.menu.search_alunos, menu)
+        /*val searchManager = getSystemService(Context.SEARCH_SERVICE)
+        val searchView = menu.findItem(R.id.search).actionView*/
+
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchView = menu.findItem(R.id.search).actionView as SearchView
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(componentName))
+
+        searchView.setOnQueryTextListener(this@MainActivity)
+
+
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -67,8 +92,6 @@ class MainActivity : AppCompatActivity() {
     fun createCreateAlunoDialog(aluno: Aluno? = null) {
 
         val index = list.indexOf(aluno)
-
-
 
        with(aluno) {
            lateinit var tNome : TextView
@@ -143,7 +166,6 @@ class MainActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
                 val position = viewHolder!!.adapterPosition
 
-
                 alert("Tem certeza?", "Excluir") {
                     isCancelable = false
                     yesButton {
@@ -154,9 +176,6 @@ class MainActivity : AppCompatActivity() {
                         recyclerView.adapter.notifyDataSetChanged()
                     }
                 }.show()
-
-                //recyclerView.adapter.notifyDataSetChanged()
-
             }
         }
 
