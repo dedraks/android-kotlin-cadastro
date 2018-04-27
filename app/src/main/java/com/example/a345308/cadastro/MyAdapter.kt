@@ -14,7 +14,6 @@ import android.widget.Filterable
 class MyAdapter(private var alunosList: MutableList<Aluno>, private val context: Context): RecyclerView.Adapter<MyAdapter.MyViewHolder>(), Filterable {
 
     var mFilter: MyFilter? = null
-    var mFilterList = mutableListOf<Aluno>()
 
     override fun getFilter(): Filter {
         if (mFilter == null) mFilter = MyFilter(this, alunosList)
@@ -35,7 +34,6 @@ class MyAdapter(private var alunosList: MutableList<Aluno>, private val context:
 
     fun updateList(list: MutableList<Aluno>) {
         this.alunosList = list
-        this.mFilterList = list.toMutableList()
     }
 
     class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -68,7 +66,7 @@ class MyAdapter(private var alunosList: MutableList<Aluno>, private val context:
             var results = FilterResults()
 
             constraint?.let {
-                if (it.length > 0) {
+                if (it.isNotEmpty()) {
                     val filtered = mutableListOf<Aluno>()
                     for (item in filterList) {
                         if (item.nome.contains(constraint, true)) {
