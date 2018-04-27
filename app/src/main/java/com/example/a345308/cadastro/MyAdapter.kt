@@ -45,11 +45,7 @@ class MyAdapter(private val alunos: List<Aluno>, private val context: Context): 
 
             itemView.onClick {
 
-
-                //fabEdit.visibility = View.VISIBLE
-
                 MainActivity.self.createCreateAlunoDialog(aluno)
-                //MainActivity.self.showFabActions()
             }
         }
     }
